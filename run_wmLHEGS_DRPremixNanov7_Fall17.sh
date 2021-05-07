@@ -7,6 +7,8 @@ OUTPATH=${!i}; i=$((i+1))
 
 date
 
+export X509_USER_PROXY=/afs/cern.ch/user/a/aalbert/x509up_u74570
+
 ############################################
 # ---------------- wmLHEGS-----------------
 ############################################
@@ -64,7 +66,8 @@ cd ../../
 
 echo "Choose random PU input file."
 PULIST=($(cat pulist_fall17.txt))
-PUFILE=${PULIST[$RANDOM % ${#PULIST[@]}]}
+# PUFILE=root://cmsxrootd.fnal.gov//${PULIST[$RANDOM % ${#PULIST[@]}]}
+PUFILE=root://xrootd-cms.infn.it//${PULIST[$RANDOM % ${#PULIST[@]}]}
 echo "Chose PU File: ${PUFILE}"
 
 cmsDriver.py step1 \
