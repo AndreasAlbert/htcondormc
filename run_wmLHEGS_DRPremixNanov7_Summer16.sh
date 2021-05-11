@@ -12,6 +12,8 @@ export X509_USER_PROXY=/afs/cern.ch/user/a/aalbert/x509up_u74570
 ############################################
 # ---------------- wmLHEGS--------------------
 ############################################
+cmssw-cc6 --bind ${PWD} --env WDIR=${PWD},FRAGMENT=${FRAGMENT},NEVENTS=${NEVENTS}<< 'EOF'
+cd $WDIR
 
 source /cvmfs/cms.cern.ch/cmsset_default.sh
 if [ -r CMSSW_7_1_45/src ] ; then
@@ -32,22 +34,28 @@ echo "Initial seed in ${SEED}"
 scram b
 cd ../../
 
-cmsDriver.py Configuration/GenProduction/python/EXO-RunIISummer15wmLHEGS-07598-fragment.py 
-            --fileout file:wmLHEGS.root 
-            --python_filename wmLHEGS_cfg.py 
-            --eventcontent RAWSIM,LHE 
-            --customise SLHCUpgradeSimulations/Configuration/postLS1Customs.customisePostLS1,Configuration/DataProcessing/Utils.addMonitoring 
-            --datatier GEN-SIM,LHE 
-            --conditions MCRUN2_71_V1::All 
-            --beamspot Realistic50ns13TeVCollision 
+cmsDriver.py Configuration/GenProduction/python/$(basename ${FRAGMENT}) \
+            --fileout file:wmLHEGS.root \
+            --python_filename wmLHEGS_cfg.py \
+            --eventcontent RAWSIM,LHE \
+            --customise SLHCUpgradeSimulations/Configuration/postLS1Customs.customisePostLS1,Configuration/DataProcessing/Utils.addMonitoring \
+            --datatier GEN-SIM,LHE \
+            --conditions MCRUN2_71_V1::All \
+            --beamspot Realistic50ns13TeVCollision \
             --customise_commands process.RandomNumberGeneratorService.externalLHEProducer.initialSeed="${SEED}" \
-            --step LHE,GEN,SIM 
-            --magField 38T_PostLS1 
-            --no_exec 
+            --step LHE,GEN,SIM \
+            --magField 38T_PostLS1 \
+            --no_exec \
             --mc \
             -n ${NEVENTS} || exit $? ;
 
-cmsRun wmLHEGS_cfg.py | tee log_wmLHEGS.txt
+cmsRun wmLHEGS_cfg.py 2&>1 | tee log_wmLHEGS.txt
+EOF
+
+if [[ ! -f wmLHEGS.root ]]; then
+  echo "ERROR: Cannot find output file wmLHEGS.root"
+  exit 1
+fi
 
 ###########################################
 #---------------- DR-----------------
@@ -122,7 +130,8 @@ else
 fi
 cd CMSSW_9_4_9/src
 eval `scram runtime -sh`
-
+scram b
+cd ../..
 
 cmsDriver.py  \
 --filein "file:AOD.root" \

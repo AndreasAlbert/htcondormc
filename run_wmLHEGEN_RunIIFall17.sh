@@ -60,3 +60,6 @@ done
 for file in *.txt; do 
     mv $file $OUTPATH/$(echo $file | sed "s|.root|_${OUTTAG}.txt|g")
 done
+
+rm *.root *.txt
+rm -rf ./CMSSW_*
